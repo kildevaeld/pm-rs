@@ -1,7 +1,7 @@
 use std::{sync::Arc, time::Duration};
 
 use futures_lite::StreamExt;
-use process::{Command, Manager};
+use pm::{Command, Manager};
 use runtime::{Runtime, SmolGlobalRuntime};
 
 fn main() {
