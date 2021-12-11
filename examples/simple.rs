@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use futures_lite::StreamExt;
 use process::{Command, Manager};
