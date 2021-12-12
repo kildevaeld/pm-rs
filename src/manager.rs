@@ -9,7 +9,7 @@ use futures_lite::stream::StreamExt;
 use futures_lite::{io::BufReader, AsyncBufReadExt, Stream};
 use generational_arena::{Arena, Index};
 use log::debug;
-use runtime::Runtime;
+use runtime::{BoxFuture, Runtime};
 use signal_child::signal::Signal;
 use std::{fmt, sync::Arc};
 
@@ -149,17 +149,19 @@ pub struct Manager(Arc<ManagerInner>);
 // }
 
 pub trait ProcessWriter: Send + Sync {
-    fn stdout(&self, pid: &Pid, line: String);
-    fn stderr(&self, pid: &Pid, line: String);
+    fn stdout<'a>(&'a self, pid: &Pid, line: String) -> BoxFuture<'a, ()>;
+    fn stderr<'a>(&'a self, pid: &Pid, line: String) -> BoxFuture<'a, ()>;
 }
 
 struct NullWriter;
 
 impl ProcessWriter for NullWriter {
-    #[allow(unused)]
-    fn stdout(&self, pid: &Pid, line: String) {}
-    #[allow(unused)]
-    fn stderr(&self, pid: &Pid, line: String) {}
+    fn stdout<'a>(&'a self, pid: &Pid, line: String) -> BoxFuture<'a, ()> {
+        Box::pin(async move { () })
+    }
+    fn stderr<'a>(&'a self, pid: &Pid, line: String) -> BoxFuture<'a, ()> {
+        Box::pin(async move { () })
+    }
 }
 
 impl Manager {
@@ -273,9 +275,9 @@ impl Manager {
                                 };
 
                                 if stdout {
-                                    writer.stdout(&idx, line);
+                                    writer.stdout(&idx, line).await;
                                 } else {
-                                    writer.stderr(&idx, line);
+                                    writer.stderr(&idx, line).await;
                                 }
                             }
                         });
