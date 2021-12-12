@@ -306,6 +306,7 @@ impl Manager {
 
                         if let EntryState::Running(id) = &entry.state {
                             let id = *id;
+                            debug!("send signal: {:?} to pid: {}", signal, id);
                             let ret = executor
                                 .unblock(move || signal_child::signal(id as i32, signal))
                                 .await;
