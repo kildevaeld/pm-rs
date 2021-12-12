@@ -10,8 +10,11 @@ use futures_lite::{io::BufReader, AsyncBufReadExt, Stream};
 use generational_arena::{Arena, Index};
 use log::debug;
 use runtime::{BoxFuture, Runtime};
-use signal_child::signal::Signal;
+// use signal_child::signal::Signal;
 use std::{fmt, sync::Arc};
+
+use nix::sys::signal::{self, Signal};
+use nix::unistd::Pid as UnixPid;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Pid(Index);
@@ -202,7 +205,9 @@ impl Manager {
                             let id = *id;
 
                             executor
-                                .unblock(move || signal_child::signal(id as i32, Signal::SIGKILL))
+                                .unblock(move || {
+                                    signal::kill(UnixPid::from_raw(id as i32), Signal::SIGKILL)
+                                })
                                 .await
                                 .ok();
                         }
@@ -306,12 +311,13 @@ impl Manager {
 
                         if let EntryState::Running(id) = &entry.state {
                             let id = *id;
-                            debug!("send signal: {:?} to pid: {}", signal, id);
-                            let ret = executor
-                                .unblock(move || signal_child::signal(id as i32, signal))
-                                .await;
 
-                            reply.send(ret).ok();
+                            let pid = UnixPid::from_raw(id as i32);
+
+                            debug!("send signal: {:?} to pid: {}", signal, id);
+                            let ret = executor.unblock(move || signal::kill(pid, signal)).await;
+
+                            reply.send(Ok(ret.unwrap())).ok();
                         }
                     }
                     Request::Exited(idx, status) => {

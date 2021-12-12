@@ -16,7 +16,7 @@ signal-child = "1"
 log = "0.4"
 futures-lite = "1"
 runtime = { git = "https://github.com/kildevaeld/runtime-rs" }
-
+nix = "0.23"
 
 [dev-dependencies]
 runtime = { git = "https://github.com/kildevaeld/runtime-rs", features = ["smol"] }
