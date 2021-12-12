@@ -149,17 +149,17 @@ pub struct Manager(Arc<ManagerInner>);
 // }
 
 pub trait ProcessWriter: Send + Sync {
-    fn stdout<'a>(&'a self, pid: &Pid, line: String) -> BoxFuture<'a, ()>;
-    fn stderr<'a>(&'a self, pid: &Pid, line: String) -> BoxFuture<'a, ()>;
+    fn stdout<'a>(&'a self, pid: &'a Pid, line: String) -> BoxFuture<'a, ()>;
+    fn stderr<'a>(&'a self, pid: &'a Pid, line: String) -> BoxFuture<'a, ()>;
 }
 
 struct NullWriter;
 
 impl ProcessWriter for NullWriter {
-    fn stdout<'a>(&'a self, pid: &Pid, line: String) -> BoxFuture<'a, ()> {
+    fn stdout<'a>(&'a self, pid: &'a Pid, line: String) -> BoxFuture<'a, ()> {
         Box::pin(async move { () })
     }
-    fn stderr<'a>(&'a self, pid: &Pid, line: String) -> BoxFuture<'a, ()> {
+    fn stderr<'a>(&'a self, pid: &'a Pid, line: String) -> BoxFuture<'a, ()> {
         Box::pin(async move { () })
     }
 }
