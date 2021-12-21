@@ -1,22 +1,23 @@
 use std::error::Error as StdError;
 use std::fmt;
 use std::io::Error as IoError;
+use std::sync::Arc;
 
 use crate::Pid;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 
 pub enum ErrorKind {
-    Io(IoError),
+    Io(Arc<IoError>),
 }
 
 impl From<IoError> for ErrorKind {
     fn from(error: IoError) -> ErrorKind {
-        ErrorKind::Io(error)
+        ErrorKind::Io(Arc::new(error))
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Error {
     pid: Option<Pid>,
     kind: ErrorKind,

@@ -140,17 +140,6 @@ impl Drop for ManagerInner {
 #[derive(Clone)]
 pub struct Manager(Arc<ManagerInner>);
 
-// #[cfg(feature = "smol")]
-// impl Manager {
-//     pub fn smol() -> Manager {
-//         Manager::new(SmolGlobalSpawner)
-//     }
-
-//     pub fn smol_with<W: ProcessWriter + 'static>(writer: W) -> Manager {
-//         Manager::new_with(SmolGlobalSpawner, writer)
-//     }
-// }
-
 pub trait ProcessWriter: Send + Sync {
     fn stdout<'a>(&'a self, pid: &'a Pid, line: String) -> BoxFuture<'a, ()>;
     fn stderr<'a>(&'a self, pid: &'a Pid, line: String) -> BoxFuture<'a, ()>;
@@ -379,6 +368,21 @@ impl Manager {
         let pid = self.create(cmd).await;
         self.start(&pid).await;
         pid
+    }
+
+    pub async fn spawn_and_remove(&self, cmd: Command) -> Result<(), Error> {
+        let pid = self.spawn(cmd).await;
+        while let Some(next) = self.watch_pid(pid).next().await {
+            match next.status {
+                Status::Crated | Status::Running(_) => continue,
+                _ => {
+                    self.remove(&pid).await.ok();
+                    break;
+                }
+            }
+        }
+
+        Ok(())
     }
 
     pub async fn create(&self, command: Command) -> Pid {
