@@ -6,19 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-process = "1"
-async-channel = "1"
-async-lock = "2"
-async-broadcast = "0.3"
+async-process = "2"
+async-channel = "2"
+async-lock = "3"
+async-broadcast = "0.7"
 async-oneshot = "0.5"
 generational-arena = "0.2"
 signal-child = "1"
 log = "0.4"
-futures-lite = "1"
-runtime = { git = "https://github.com/kildevaeld/runtime-rs" }
-nix = "0.23"
+futures-lite = "2"
+nix = { version = "0.29", features = ["process"] }
 
 [dev-dependencies]
-runtime = { git = "https://github.com/kildevaeld/runtime-rs", features = ["smol"] }
-pretty_env_logger = "0.4"
-
+pretty_env_logger = "0.5"
